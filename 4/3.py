@@ -1,91 +1,75 @@
-class Kolo:
-    def __init__(self,diameter,use):
-        self.__diameter = diameter
-        self.__use = use
-        
-    def setDiameter(self, newDiameter):
-        self.__diameter = newDiameter
-        
-    def setUse(self, newUse):
-        self.__use = newUse
-        
-    def getInfo(self):
-        d = {}
-        d['diameter'] = self.__diameter
-        d['use'] = self.__use
-        if hasattr(super(), 'getInfo'): 
-            d.update(super().getInfo())    
-        return d
-class Silnik:
-    def __init__(self,power,strokes):
-        self.__power = power
-        self.__strokes = strokes
+import re
+
+class InvalidPesel(Exception): 
+    def __init__(self):
+        pass
     
-    def setStrokes(self, newStrokes):
-        self.__strokes = newStrokes
+    def __str__(self):
+        return "Nieprawidlowy pesel"
         
-    def setPower(self, newPower):
-        self.__power = newPower
-
-    def getInfo(self):
-        d = {}
-        d['power'] = self.__power
-        d['strokes'] = self.__strokes
-        if hasattr(super(), 'getInfo'): 
-            d.update(super().getInfo()) 
-        return d
-        
-class Skrzynia:
-    def __init__(self,transmission,parts):
-        self.__transmission = transmission
-        self.__parts = parts
+class InvalidName(Exception): 
+    def __init__(self):
+        pass
     
-    def setTransmission(self, newTransmission):
-        self.__transmission = newTransmission
+    def __str__(self):
+        return "Nieprawidlowe imie/nazwisko"
         
-    def setParts(self, newParts):
-        self.__parts = newParts
+
+
+class Osoba:
+
+    def __init__(self,imie,nazwisko,pesel):
+        self.set_imie(imie)
+        self.set_nazwisko(nazwisko)
+        self.set_pesel(pesel)
+
+
+    def set_imie(self,imie):
+        valid = re.match(r'^[\w]+$',imie)
+        if valid:
+            self.imie = valid.group()
+        else: raise InvalidName()
+            
+    def set_nazwisko(self,nazwisko):
+        valid = re.match(r'^[\w]+$',nazwisko)
+        if valid:
+            self.nazwisko = valid.group()
+        else: raise InvalidName()
+
+
+    def set_pesel(self,pesel):
+        pat = re.compile(r'''^(?P<rok>\d{2})
+        (?P<miesiac>\d{2})
+        (?P<dzien>\d{2})
+        (?P<reszta>\d{3})
+        (?P<plec>\d)
+        (?P<suma_kontrolna>\d)$''',re.IGNORECASE | re.VERBOSE)
+
+        valid = re.match(pat,pesel)
+        if valid:
+            dik = {}
+            wagi_sumy = [1,3,7,9,1,3,7,9,1,3]
+            
+            if int(valid.group(2)) in range(1,13) or int(valid.group(2)) in range(21,33): pass
+            else: raise InvalidPesel()
+            
+            suma = 0
+            for k in range(len(valid.group(0))-1):
+                temp = int(valid.group(0)[k]) * wagi_sumy[k]
+                suma += temp
+            if 10-(suma%10) == int(valid.group(6)): self.pesel = pesel
+            else: raise InvalidPesel()
+        else: raise InvalidPesel()
     
-    def getInfo(self):
-        d = {}
-        d['transmission'] = self.__transmission
-        d['parts'] = self.__parts
-        if hasattr(super(), 'getInfo'): 
-            d.update(super().getInfo()) 
-        return d
-        
-class Samochod(Kolo,Silnik,Skrzynia):
-    def __init__(self,diameter='-',use='-',power='-',strokes='-',transmission='-',parts='-',colour='-',typeOf='-'):
-        Kolo.__init__(self,diameter,use)
-        Silnik.__init__(self,power,strokes)
-        Skrzynia.__init__(self,transmission,parts)
-        self.__colour = colour
-        self.__typeOf = typeOf
-        
-    def setColour(self, newColour):
-        self.__colour = newColour
-        
-    def setType(self, newType):
-        self.__typeOf = newType
-        
-    def getInfo(self):
-        d = {}
-        d['colour'] = self.__colour
-        d['type'] = self.__typeOf
-        if hasattr(super(), 'getInfo'): 
-           d.update(super().getInfo()) 
-        return d
-
-def printResult(dict):
-    for key, value in dict.items():
-        print(key, ' : ', value) 
-    print('----------------------')
-
-a = Samochod(18,"Zimowe","75 KM",4,"Manual",5,"Zielony","Sedan")
-b = Samochod()
-printResult(a.getInfo())
-printResult(b.getInfo())
-b.setDiameter(19)
-printResult(b.getInfo())
+    def __str__(self):
+        return self.imie+" "+self.nazwisko+" "+self.pesel
 
 
+try:
+    o = Osoba("Jose","Mourinho","81010200141")
+except InvalidName as e:
+    print(e)
+except InvalidPesel as e:
+    print(e)
+else:
+    print(o)

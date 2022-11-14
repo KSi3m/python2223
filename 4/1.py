@@ -1,41 +1,32 @@
-import math
-class LiczbaZespolona:
-    def __init__(self,a,b):
-        self.__a = a
-        self.__b = b
+import re
+class EmailException(Exception): 
+    def __init__(self):
+        pass
+    
+    def __str__(self):
+        return "Nieprawidlowy adres email"
+      
 
-    def __repr__(self):
-        rep = str(self.__a)+" + "+str(self.__b)+"i"
-        return rep
 
-    def __add__(self, other):
-        return LiczbaZespolona(self.__a+other.__a,self.__b+other.__b)
+class Email:
+    def __init__(self,mail):
+        if self.validate(mail) is False:
+            raise EmailException()
+        else:
+            print(mail)
+    def validate(self,mail): 
+        pattern = re.compile(r'[a-zA-Z0-9._\+" "!%-]+@[a-zA-Z0-9._-]+|(\.[a-zA-Z._-]+)')
+        #pattern = re.compile(r'[\w\.]+@[\w\.]+') #wersja uproszczona
+        match = re.match(pattern,mail)
+        return True if match else False
+      
 
-    def __sub__(self, other):
-        return LiczbaZespolona(self.__a - other.__a, self.__b - other.__b)
+adresy = ['simple@example.com','very.common@example.com','disposable.style.email.with+symbol@example.com','other.email-with-hyphen@example.com','user.name+tag+sorting@example.com','Abc.example.com']
 
-    def __mul__(self, other):
-        return LiczbaZespolona((self.__a * other.__a)-(self.__b * other.__b), (self.__b * other.__a)+(self.__a * other.__b))
 
-    def __truediv__(self, other):
-        return LiczbaZespolona(((self.__a * other.__a) + (self.__b * other.__b))/(other.__a**2 + other.__b**2),
-                        ((self.__b * other.__a) - (self.__a * other.__b))/(other.__a**2 + other.__b**2))
+for x in adresy:
+    try:
+        g = Email(x)
+    except EmailException as e:
+        print(e)
 
-    def module(self):
-        return math.sqrt((self.__a**2)+(self.__b**2))
-
-    def checkIfEqual(self,other):
-        if self.__a == other.__a and self.__b == other.__b:
-            return True
-        return False
-
-a = LiczbaZespolona(12,5)
-b = LiczbaZespolona(3,2)
-c = LiczbaZespolona(3,2)
-print(a+b)
-print(a-b)
-print(a*b)
-print(a/b)
-print(b.module())
-print(a.checkIfEqual(b))
-print(b.checkIfEqual(c))
